@@ -129,11 +129,6 @@ mod wasm {
                 }
             }
 
-            struct ApprovalWithMeta {
-                approval: ApprovalFilter,
-                meta: LogMeta,
-            }
-
             let (approvals, tokens) = self
                 .0
                 .get_approvals_and_tokens(
