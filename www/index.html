@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Hello wasm-pack!</title>
+		<style>
+		* {
+		  font-family: monospace
+		}
+		table, td {
+      border: 1px solid #333;
+    }
+
+thead,
+tfoot {
+    background-color: #333;
+    color: #fff;
+}
+		</style>
+  </head>
+  <body>
+    <label for="node">Ethereum node HTTP JSON-RPC URL:</label><br>
+	  <input type="url" id="node" name="node" value="https://rpc.flashbots.net"><br>
+    <label for="owner">Owner address:</label><br>
+	  <input type="text" id="owner" name="owner" value="0x005e20fcf757b55d6e27dea9ba4f90c0b03ef852"><br>
+		<label for="from_block">From Block (number):</label><br>
+	  <input type="number" id="from_block" name="from_block" value="15096611"><br>
+		<label for="to_block">To Block (number):</label><br>
+	  <input type="number" id="to_block" name="to_block", value="15099611"><br>
+		<input type="button" id="get_approvals" value="Get Approvals"><br>
+
+    <table>
+		  <thead>
+			  <tr>
+				  <th>TOKEN</th>
+				  <th>SPENDER</th>
+				  <th>AMOUNT</th>
+					<th>TX</th>
+				</tr>
+			</thead>
+		  <tbody id="approvals">
+			</tbody>
+		</table>
+
+    <noscript>This page contains webassembly and javascript content, please enable javascript in your browser.</noscript>
+    <script src="./bootstrap.js"></script>
+  </body>
+</html>

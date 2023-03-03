@@ -6,10 +6,11 @@ use ethers::{
     types::{Address, U256},
 };
 use futures::future::try_join;
+use serde::Serialize;
 
 use crate::abi::ierc20::IERC20;
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct CachedERC20 {
     symbol: String,
     decimals: u8,
