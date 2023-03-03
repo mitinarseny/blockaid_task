@@ -4,7 +4,7 @@ Task: https://wobbly-nutmeg-8a5.notion.site/Approval-Detection-rust-1a61b33c073b
 
 ## Features and other notes
 
-* Automatic Rust bindings generation from ERC20 JSON ABI (see ./build.rs)
+* Automatic Rust bindings generation from ERC20 JSON ABI (see [./build.rs](./build.rs))
 * Metadata about tokens is collected from the node at runtime:
   token symbols and decimals
 * The whole process took me ~12 hours:
@@ -67,3 +67,5 @@ $ npm start
 ```
 
 Then go to [localhost:8080](http://localhost:8080)
+![image](https://user-images.githubusercontent.com/10659110/222786309-225fd802-6345-4c21-bf9c-998277afd64f.png)
+
