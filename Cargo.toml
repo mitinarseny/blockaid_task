@@ -1,0 +1,19 @@
+[package]
+name = "my_approvals"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1"
+clap = { version = "4.0", features = ["derive"] }
+ethers = { version = "=1.0.2", default-features = false, features = ["abigen", "rustls", "ws"] }
+futures = "0.3"
+itertools = "0.10"
+tokio = { version = "1", default-features = false, features = ["rt-multi-thread"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+url = { version = "2.2" }
+
+[build-dependencies]
+ethers = { version = "=1.0.2", default-features = false, features = ["abigen"] }
+
