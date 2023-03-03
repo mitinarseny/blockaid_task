@@ -6,9 +6,9 @@
     "build": "webpack --config webpack.config.js",
     "start": "webpack-dev-server --open -d"
   },
-	"dependencies": {
-		"my_approvals": "file:../pkg"
-	},
+  "dependencies": {
+    "my_approvals": "file:../pkg"
+  },
   "devDependencies": {
     "hello-wasm-pack": "^0.1.0",
     "webpack": "^4.29.3",
