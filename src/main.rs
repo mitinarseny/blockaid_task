@@ -51,7 +51,7 @@ async fn main() -> anyhow::Result<()> {
 
     eprintln!("got {} approvals", approvals.len());
 
-    for a in approvals.into_iter().rev() {
+    for a in approvals {
         println!("{}", a);
     }
 
