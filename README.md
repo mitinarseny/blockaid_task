@@ -19,7 +19,7 @@ Both calls `transfer` and `transferFrom` are part of IERC20 interface:
   This is especially useful when refresing list of approvals in the web-UI.
   As a downside, this WASM module, for instance, would consume more and more memory
   every time new tokens are resolved. This can be fixed by introducing an upper limit
-  for cache size.
+  for cache size, but I skipped it for now.
 * The whole process took me ~14 hours:
   * ~3 hours on CLI app
   * ~3 hours on learning about WASM and conditional compilation
