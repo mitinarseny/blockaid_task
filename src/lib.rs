@@ -1,7 +1,8 @@
 pub(crate) mod abi;
+mod cached;
 mod erc20;
 
-use std::{collections::HashMap, sync::Arc};
+use std::sync::Arc;
 
 use ethers::{
     contract::{ContractError, EthEvent, LogMeta},
@@ -12,19 +13,24 @@ use futures::{
     stream::{FuturesUnordered, TryStreamExt},
     TryFutureExt,
 };
-use itertools::Itertools;
 use url::Url;
 
-use crate::{abi::ierc20::ApprovalFilter, erc20::CachedERC20};
+use self::{
+    abi::ierc20::ApprovalFilter,
+    erc20::{CachedTokens, TokenApproval},
+};
 
 pub struct App<P: JsonRpcClient> {
     client: Arc<Provider<P>>,
+    tokens: CachedTokens<Provider<P>>,
 }
 
 impl App<Http> {
     pub fn new(node: impl Into<Url>) -> Self {
+        let client = Arc::new(Provider::new(Http::new(node)));
         Self {
-            client: Provider::new(Http::new(node)).into(),
+            tokens: CachedTokens::new(client.clone()),
+            client,
         }
     }
 }
@@ -43,39 +49,22 @@ impl<P: JsonRpcClient + 'static> App<P> {
         .await
     }
 
-    async fn get_tokens(
+    pub async fn get_token_approvals(
         &self,
-        tokens: impl IntoIterator<Item = Address>,
-    ) -> Result<HashMap<Address, CachedERC20>, ContractError<Provider<P>>> {
-        tokens
+        owner: Address,
+        block_filter: FilterBlockOption,
+    ) -> Result<Vec<TokenApproval>, ContractError<Provider<P>>> {
+        self.get_approvals_from(owner, block_filter)
+            .await?
             .into_iter()
-            .unique()
-            .map(|address| {
-                CachedERC20::new(address, self.client.clone()).map_ok(move |t| (address, t))
+            .map(|(approval, meta)| {
+                self.tokens
+                    .try_get_token(meta.address)
+                    .map_ok(move |token| TokenApproval::new(token, approval, meta))
             })
             .collect::<FuturesUnordered<_>>()
             .try_collect()
             .await
-    }
-
-    pub async fn get_approvals_and_tokens(
-        &self,
-        owner: Address,
-        block_filter: FilterBlockOption,
-    ) -> Result<
-        (
-            Vec<(ApprovalFilter, LogMeta)>,
-            HashMap<Address, CachedERC20>,
-        ),
-        ContractError<Provider<P>>,
-    > {
-        let approvals = self.get_approvals_from(owner, block_filter).await?;
-
-        let tokens = self
-            .get_tokens(approvals.iter().map(|(_, m)| m.address))
-            .await?;
-
-        Ok((approvals, tokens))
     }
 }
 
@@ -84,8 +73,6 @@ mod wasm {
     use super::*;
     use std::str::FromStr;
 
-    use ethers::types::U256;
-    use serde::Serialize;
     use wasm_bindgen::prelude::*;
 
     /// Non-generic wrapper for App<P> to use with #[wasm_bindgen].
@@ -100,53 +87,24 @@ mod wasm {
             Ok(Self(App::new(Url::parse(node)?)))
         }
 
-        pub async fn get_approvals_and_tokens(
+        pub async fn get_token_approvals(
             &self,
             owner: &str,
             from_block: Option<u64>,
             to_block: Option<u64>,
         ) -> Result<JsValue, JsError> {
-            #[derive(Serialize)]
-            #[wasm_bindgen]
-            struct Approval {
-                owner: Address,
-                spender: Address,
-                value: U256,
-            }
-
-            impl From<ApprovalFilter> for Approval {
-                fn from(value: ApprovalFilter) -> Self {
-                    let ApprovalFilter {
-                        owner,
-                        spender,
-                        value,
-                    } = value;
-                    Self {
-                        owner,
-                        spender,
-                        value,
-                    }
-                }
-            }
-
-            let (approvals, tokens) = self
-                .0
-                .get_approvals_and_tokens(
-                    Address::from_str(owner)?,
-                    FilterBlockOption::Range {
-                        from_block: from_block.map(Into::into),
-                        to_block: to_block.map(Into::into),
-                    },
-                )
-                .await?;
-
-            serde_wasm_bindgen::to_value(&(
-                approvals
-                    .into_iter()
-                    .map(|(a, m)| (Approval::from(a), m))
-                    .collect::<Vec<_>>(),
-                tokens,
-            ))
+            serde_wasm_bindgen::to_value(
+                &self
+                    .0
+                    .get_token_approvals(
+                        Address::from_str(owner)?,
+                        FilterBlockOption::Range {
+                            from_block: from_block.map(Into::into),
+                            to_block: to_block.map(Into::into),
+                        },
+                    )
+                    .await?,
+            )
             .map_err(Into::into)
         }
     }

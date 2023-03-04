@@ -35,8 +35,8 @@ async fn main() -> anyhow::Result<()> {
     let app = App::new(args.node);
 
     eprintln!("getting approvals from {:#x}", &args.owner);
-    let (approvals, tokens) = app
-        .get_approvals_and_tokens(
+    let approvals = app
+        .get_token_approvals(
             args.owner,
             FilterBlockOption::Range {
                 from_block: Some(
@@ -49,26 +49,10 @@ async fn main() -> anyhow::Result<()> {
         )
         .await?;
 
-    eprintln!(
-        "got {} approvals from {} distinct tokens",
-        approvals.len(),
-        tokens.len()
-    );
+    eprintln!("got {} approvals", approvals.len());
 
-    println!("TOKEN\tAMOUNT\tSPENDER\t(tx TX_HASH)");
-    for (a, m) in approvals.into_iter().rev() {
-        let token = tokens.get(&m.address).unwrap(); // we already collected all tokens
-
-        let (int_part, fract_part) = token.as_decimals(a.value);
-
-        println!(
-            "{}\t{}.{}\t{:#x}\t(tx {:#x})",
-            token.symbol(),
-            int_part,
-            fract_part,
-            a.spender,
-            m.transaction_hash,
-        );
+    for a in approvals.into_iter().rev() {
+        println!("{}", a);
     }
 
     Ok(())
