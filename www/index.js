@@ -15,6 +15,7 @@ getButton.addEventListener('click', event => {
 	getButton.value = "Loading...";
 	if (nodeURL.value != last_node_url) {
 		app = my_approvals.HTTPApp.new(nodeURL.value);
+		last_node_url = nodeURL.value;
 	}
 	try {
 		app.get_token_approvals(owner.value, fromBlock.value, toBlock.value).then((approvals) => {
